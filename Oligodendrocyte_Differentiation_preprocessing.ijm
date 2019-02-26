@@ -43,7 +43,7 @@ for (i=0; i<myList.length; i++) {
 }
 
 //RENAME & CREATE FLAT-FIELD
-if (mode=="Rename  & Create flat-field") {
+if (mode=="Rename & Create flat-field") {
 	//RENAME
 	for (i=0; i<batchArray.length; i++) {
 		batchList=getFileList(inDir+File.separator+batchArray[i]);
