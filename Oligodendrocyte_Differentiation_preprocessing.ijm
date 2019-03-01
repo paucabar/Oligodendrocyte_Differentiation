@@ -30,7 +30,7 @@ if (batchFiles==0) {
 	exit("No batch files")
 }
 
-//create an array containing only the names of the BATCH files in the directory path
+//create an array containing only the names of the SLICE folders in the directory path
 batchArray=newArray(batchFiles);
 batchCode=newArray(batchFiles);
 count=0;
@@ -41,6 +41,7 @@ for (i=0; i<myList.length; i++) {
 		count++;
 	}
 }
+Array.sort(batchArray);
 
 //RENAME & CREATE FLAT-FIELD
 if (mode=="Rename & Create flat-field") {
