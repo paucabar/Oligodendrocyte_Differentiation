@@ -107,7 +107,7 @@ if (mode=="Rename" || mode=="Rename + Create flat-field") {
 }
 
 //PREPROCESS
-if (mode=="Preprocess") {
+if (mode=="Projections" || mode=="Projections + Flat-field correction") {
 
 	//'Slide Selection' dialog box
 	selectionOptions=newArray("Select All", "Include", "Exclude");
@@ -212,21 +212,23 @@ if (mode=="Preprocess") {
 					path=inDir+File.separator+batchArray[i]+nd2Array[j];
 					run("Bio-Formats", "open=["+path+"] autoscale color_mode=Grayscale rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 					rename(nd2Array[j]);
-					Stack.getDimensions(width, height, channels, slices, frames);
-					flatFieldImages=newArray(channels);
 					currentFileName=File.nameWithoutExtension;
-					run("Split Channels");
-					for (k=0; k<channels; k++) {
-						flatFieldFile="Flat-field_C"+k+1+"_"+substring(batchArray[i], 0, lengthOf(batchArray[i]) - 1)+".tif";
-						open(inDir+File.separator+batchArray[i]+flatFieldFile);
-						flatFieldImages[k]=getTitle();
+					if (mode=="Projections + Flat-field correction") {
+						Stack.getDimensions(width, height, channels, slices, frames);
+						flatFieldImages=newArray(channels);
+						run("Split Channels");
+						for (k=0; k<channels; k++) {
+							flatFieldFile="Flat-field_C"+k+1+"_"+substring(batchArray[i], 0, lengthOf(batchArray[i]) - 1)+".tif";
+							open(inDir+File.separator+batchArray[i]+flatFieldFile);
+							flatFieldImages[k]=getTitle();
+						}
+						for (k=0; k<channels; k++) {
+							imageCalculator("Divide stack", "C"+k+1+"-"+nd2Array[j], flatFieldImages[k]);
+							close(flatFieldImages[k]);
+						}
+						run("Merge Channels...", "c1=C3-"+nd2Array[j]+" c2=C2-"+nd2Array[j]+" c3=C1-"+nd2Array[j]+" c4=C4-"+nd2Array[j]+" create");
+						rename(nd2Array[j]);
 					}
-					for (k=0; k<channels; k++) {
-						imageCalculator("Divide stack", "C"+k+1+"-"+nd2Array[j], flatFieldImages[k]);
-						close(flatFieldImages[k]);
-					}
-					run("Merge Channels...", "c1=C3-"+nd2Array[j]+" c2=C2-"+nd2Array[j]+" c3=C1-"+nd2Array[j]+" c4=C4-"+nd2Array[j]+" create");
-					rename(nd2Array[j]);
 					run("Z Project...", "projection=[Sum Slices]");
 					run("Split Channels");
 					selectWindow(nd2Array[j]);
