@@ -43,8 +43,8 @@ for (i=0; i<myList.length; i++) {
 }
 Array.sort(batchArray);
 
-//RENAME & CREATE FLAT-FIELD
-if (mode=="Rename" || mode=="Rename & Create flat-field") {
+//RENAME + CREATE FLAT-FIELD
+if (mode=="Rename" || mode=="Rename + Create flat-field") {
 	//RENAME
 	for (i=0; i<batchArray.length; i++) {
 		batchList=getFileList(inDir+File.separator+batchArray[i]);
@@ -77,7 +77,7 @@ if (mode=="Rename" || mode=="Rename & Create flat-field") {
 
 				
 				//CREATE FLAT-FIELD
-				if (mode=="Rename & Create flat-field") {
+				if (mode=="Rename + Create flat-field") {
 					run("Bio-Formats", "open=["+inDir+File.separator+batchArray[i]+File.separator+newFileName+"] color_mode=Grayscale rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
 					Stack.getDimensions(width, height, channels, slices, frames);
 					for (k=0; k<channels; k++) {
@@ -90,7 +90,7 @@ if (mode=="Rename" || mode=="Rename & Create flat-field") {
 				close(newFileName);
 			}
 
-			if (mode=="Rename & Create flat-field") {
+			if (mode=="Rename + Create flat-field") {
 				for (j=0; j<channels; j++) {
 					run("Images to Stack", "name=C"+j+1+"_stack title=C"+j+1+" use");
 					run("BaSiC ", "processing_stack=C"+j+1+"_stack flat-field=None dark-field=None shading_estimation=[Estimate shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading only] lambda_flat=0.50 lambda_dark=0.50");
