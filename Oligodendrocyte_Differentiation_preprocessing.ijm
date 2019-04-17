@@ -1,6 +1,6 @@
 //INPUT/OUPUT
 #@ String (label=" ", value="<html><font size=5><font color=purple><b>Oligodendrocyte Differentiation</b></font><br><font color=black>Pre-processing</font></html>", visibility=MESSAGE, persist=false) heading
-#@ String(label="Select mode:", choices={"Rename & Create flat-field", "Preprocess"}, style="radioButtonVertical") mode
+#@ String(label="Select mode:", choices={"Rename", "Rename + Create flat-field", "Projections", "Projections + Flat-field correction"}, style="radioButtonVertical") mode
 #@ File(label="Select an input directory:", style="directory") inDir
 #@ String (label=" ", value="<html><img src=\"http://www.crm.ed.ac.uk/sites/default/themes/website/logo.png\"></html>", visibility=MESSAGE, persist=false) logo1
 myList=getFileList(inDir);  //an array
@@ -44,7 +44,7 @@ for (i=0; i<myList.length; i++) {
 Array.sort(batchArray);
 
 //RENAME & CREATE FLAT-FIELD
-if (mode=="Rename & Create flat-field") {
+if (mode=="Rename" || mode=="Rename & Create flat-field") {
 	//RENAME
 	for (i=0; i<batchArray.length; i++) {
 		batchList=getFileList(inDir+File.separator+batchArray[i]);
@@ -74,28 +74,34 @@ if (mode=="Rename & Create flat-field") {
 				newFileName=substring(batchArray[i], 0, lengthOf(batchArray[i]) - 1)+"_"+truncatedFileName+".nd2";
 				print("Renaming: " + newFileName);
 				File.rename(inDir+File.separator+batchArray[i]+File.separator+nd2Array[j], inDir+File.separator+batchArray[i]+File.separator+newFileName);
+
 				
-				//ILLUMINATION CORRECTION
-				run("Bio-Formats", "open=["+inDir+File.separator+batchArray[i]+File.separator+newFileName+"] color_mode=Grayscale rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-				Stack.getDimensions(width, height, channels, slices, frames);
-				for (k=0; k<channels; k++) {
-					Stack.setChannel(k);
-					run("Duplicate...", "title=C"+k+1+"_"+newFileName);
-					run("Grays");
-					selectImage(newFileName);
+				//CREATE FLAT-FIELD
+				if (mode=="Rename & Create flat-field") {
+					run("Bio-Formats", "open=["+inDir+File.separator+batchArray[i]+File.separator+newFileName+"] color_mode=Grayscale rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
+					Stack.getDimensions(width, height, channels, slices, frames);
+					for (k=0; k<channels; k++) {
+						Stack.setChannel(k);
+						run("Duplicate...", "title=C"+k+1+"_"+newFileName);
+						run("Grays");
+						selectImage(newFileName);
+					}
 				}
 				close(newFileName);
 			}
-			for (j=0; j<channels; j++) {
-				run("Images to Stack", "name=C"+j+1+"_stack title=C"+j+1+" use");
-				run("BaSiC ", "processing_stack=C"+j+1+"_stack flat-field=None dark-field=None shading_estimation=[Estimate shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading only] lambda_flat=0.50 lambda_dark=0.50");
-				flatFieldID="Flat-field_C"+j+1+"_"+substring(batchArray[i], 0, lengthOf(batchArray[i]) - 1);
-				rename(flatFieldID);
-				saveAs("tif", inDir+File.separator+batchArray[i]+File.separator+flatFieldID);
-				close("C"+j+1+"_stack");
-				close(flatFieldID);
+
+			if (mode=="Rename & Create flat-field") {
+				for (j=0; j<channels; j++) {
+					run("Images to Stack", "name=C"+j+1+"_stack title=C"+j+1+" use");
+					run("BaSiC ", "processing_stack=C"+j+1+"_stack flat-field=None dark-field=None shading_estimation=[Estimate shading profiles] shading_model=[Estimate flat-field only (ignore dark-field)] setting_regularisationparametes=Automatic temporal_drift=Ignore correction_options=[Compute shading only] lambda_flat=0.50 lambda_dark=0.50");
+					flatFieldID="Flat-field_C"+j+1+"_"+substring(batchArray[i], 0, lengthOf(batchArray[i]) - 1);
+					rename(flatFieldID);
+					saveAs("tif", inDir+File.separator+batchArray[i]+File.separator+flatFieldID);
+					close("C"+j+1+"_stack");
+					close(flatFieldID);
+				}
+				run("Close All");
 			}
-			run("Close All");
 		}
 	}
 }
