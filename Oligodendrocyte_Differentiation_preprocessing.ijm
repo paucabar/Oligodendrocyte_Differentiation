@@ -174,15 +174,7 @@ if (mode=="Projections" || mode=="Projections + Flat-field correction") {
 	}
 	File.makeDirectory(outDir);
 
-	//Create a table to save the list of preprocessed images
-	titleTXT1 = "Images list";
-	titleTXT2 = "["+titleTXT1+"]";
-	imagesTXT = titleTXT2;
-	run("Table...", "name="+titleTXT2+" width=500 height=500");
-	print(imagesTXT, "\\Headings:n\tImageID");
-
 	//SLICE PROCESSING
-	countID=0;
 	for (i=0; i<batchArray.length; i++) {
 		if (fileCheckbox[i]==true) {
 			batchList=getFileList(inDir+File.separator+batchArray[i]);
@@ -269,8 +261,6 @@ if (mode=="Projections" || mode=="Projections + Flat-field correction") {
 					saveAs("Tiff", outDir+"\\"+title);
 					close("*");
 				}
-				countID++;
-				print(imagesTXT, countID + "\t" + currentFileName);
 			}
 			
 			while (nImages>0) { 
@@ -280,11 +270,6 @@ if (mode=="Projections" || mode=="Projections + Flat-field correction") {
 			 
 		}
 	}
-	//save imagesTXT as TXT
-	selectWindow(titleTXT1);
-	saveAs("txt", outDir+"\\ImagesID_list");
-	selectWindow(titleTXT1);
-	run("Close");
 }
 setBatchMode(false);
 print("**** MACRO DONE ****");
