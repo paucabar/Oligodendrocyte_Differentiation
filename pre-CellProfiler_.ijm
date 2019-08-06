@@ -3,11 +3,12 @@
 #@ File(label="Select an input directory:", style="directory") inDir
 #@ String (label=" ", value="<html><img src=\"http://www.crm.ed.ac.uk/sites/default/themes/website/logo.png\"></html>", visibility=MESSAGE, persist=false) logo1
 myList=getFileList(inDir);
-outDir=inDir+File.separator+"_out";
+outDir=inDir+"_pre-processed";
 File.makeDirectory(outDir);
 
 //CLEAR LOG
 print("\\Clear");
+print("Running pre-processing");
 // CLOSE ALL OPEN IMAGES
 while (nImages>0) { 
 	selectImage(nImages); 
@@ -106,3 +107,4 @@ for (i=0; i<batchArray.length; i++) {
 	}
 }
 setBatchMode(false);
+print("Pre-processing ends");
