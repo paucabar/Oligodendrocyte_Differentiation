@@ -71,20 +71,37 @@ for (i=0; i<batchArray.length; i++) {
 			truncatedFileName=substring(nd2Array[j], 0, indexOfDot-3);
 			// concatenate folder name with files name
 			newFileName=substring(batchArray[i], 0, lengthOf(batchArray[i]) - 1)+"_"+truncatedFileName;
-			print("Renaming: " + newFileName);
+			print("Pre-processing: " + newFileName);
 			run("Bio-Formats", "open=["+inDir+File.separator+batchArray[i]+File.separator+nd2Array[j]+"] color_mode=Grayscale rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT");
-			//open(inDir+File.separator+batchArray[i]+File.separator+nd2Array[j]);
 			Stack.getDimensions(width, height, channels, slices, frames);
-			for (k=1; k<=slices; k++) {
-				for (l=1; l<=channels; l++) {
-					run("Duplicate...", "duplicate channels="+l+" slices="+k);
-					run("Grays");
-					saveAs("tif", outDir+File.separator+newFileName+"_C"+l+"_Z"+k+".nd2");
-					close();
-				}
-			}
+			run("Z Project...", "projection=[Sum Slices]");
+			run("Split Channels");
+			selectWindow(nd2Array[j]);
+			run("Z Project...", "projection=[Max Intensity]");
+			run("Split Channels");
+			
+			//channel 01
+			selectWindow("C1-MAX_"+nd2Array[j]);
+			run("Enhance Contrast...", "saturated=0.1 normalize");
+			run("Subtract Background...", "rolling=15");
+			title="C1-MAX_"+newFileName;
+			saveAs("Tiff", outDir+File.separator+title+".nd2");
+			
+			//channel 02
+			selectWindow("C2-SUM_"+nd2Array[j]);
+			title="C2-SUM_"+newFileName;
+			saveAs("Tiff", outDir+File.separator+title+".nd2");
+			
+			//channel 03
+			selectWindow("C3-SUM_"+nd2Array[j]);
+			title="C3-SUM_"+newFileName;
+			saveAs("Tiff", outDir+File.separator+title+".nd2");
+			
+			//channel 04
+			selectWindow("C4-SUM_"+nd2Array[j]);
+			title="C4-SUM_"+newFileName;
+			saveAs("Tiff", outDir+File.separator+title+".nd2");
 			run("Close All");
-			//File.rename(inDir+File.separator+batchArray[i]+File.separator+nd2Array[j], inDir+File.separator+batchArray[i]+File.separator+newFileName);
 		}
 	}
 }
